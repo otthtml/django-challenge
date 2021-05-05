@@ -80,7 +80,7 @@ The following features are optional to implement, but if you do, you'll be ranke
 * Create a virtualenv: `python -m venv virtualenv` and activate it `. virtualenv/bin/activate`.
 * Install dependencies: `pip install -r requirements.txt`
 * Start the api service: `cd api_service ; ./manage.py runserver`
-* Start the stock service: `cd stoc_service ; ./manage.py runserver`
+* Start the stock service: `cd stock_service ; ./manage.py runserver`
 
 __Important:__ If your implementation requires different steps to start the services
 (like starting a rabbitMQ consumer), document them here!
