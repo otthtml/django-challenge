@@ -25,3 +25,8 @@ def setup_user_for_tests():
     '''simple user setup for tests in all services'''
     user = create_user()
     get_tokens_for_user(user)
+
+def setup_superuser_for_tests():
+    '''simple superuser setup for tests in all services'''
+    superuser = create_superuser()
+    get_tokens_for_user(superuser)
