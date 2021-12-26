@@ -1,8 +1,11 @@
+API_ROOT = ./api_service/manage.py
+STOCK_ROOT = ./stock_service/manage.py
+
 run_api:
-	./api_service/manage.py runserver;
+	$(API_ROOT) runserver;
 
 run_stock:
-	./stock_service/manage.py runserver;
+	$(STOCK_ROOT) runserver;
 
 activate:
 	. virtualenv/bin/activate;
@@ -12,9 +15,18 @@ clean:
 	rm -rf virtualenv;
 
 test_api:
-	./api_service/manage.py test api
+	$(API_ROOT) test api
 
 test_stock:
-	./stock_service/manage.py test stocks
+	$(STOCK_ROOT) test stocks
 
 test: test_api test_stock
+
+migrate:
+	$(API_ROOT) migrate; 
+
+create_user:
+	echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_user('octavio', 'octavio@myproject.com', 'password')" | python $(API_ROOT) shell
+
+create_superuser:
+	echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@myproject.com', 'password')" | python $(API_ROOT) shell
