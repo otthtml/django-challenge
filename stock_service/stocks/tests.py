@@ -1,19 +1,17 @@
 '''
 Test for stock_service
 '''
-from django.test import TestCase
+from django.test import Client, TestCase
 
-# Create your tests here.
 class TestStock(TestCase):
     '''Tests for external calls'''
-    CODE = 'aapl.us'
 
-
-    def test_stooq_returns_valid_csv(self):
-        '''Test calls to stooq are returning as expected'''
-        self.assertEqual(True, 1==1)
-
+    def setUp(self):
+        self.code = 'aapl.us'
+        self.client = Client()
 
     def test_stock_endpoint(self):
         '''Test /stock endpoint throws'''
-        self.assertEqual(True, 1==1)
+        response = self.client.get(f'/stock?stock_code={self.code}')
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(True, self.code in response.content.decode().lower())
