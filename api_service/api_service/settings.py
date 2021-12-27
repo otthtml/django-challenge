@@ -1,4 +1,5 @@
 # encoding: utf-8
+'''settings for api_service'''
 
 from pathlib import Path
 
@@ -32,6 +33,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'api',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [

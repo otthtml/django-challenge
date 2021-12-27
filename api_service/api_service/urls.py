@@ -1,4 +1,5 @@
 # encoding: utf-8
+'''urls for api_service'''
 
 from django.contrib import admin
 from django.urls import path
