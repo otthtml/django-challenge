@@ -12,7 +12,7 @@ class StockView(APIView):
     """
     Endpoint to allow users to query stocks
     """
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         '''Call the stock service, save the response, and return the response to the user'''
         stock_code = request.query_params.get('q')
         return Response()
