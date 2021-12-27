@@ -11,7 +11,7 @@ class TestStock(TestCase):
         self.client = Client()
 
     def test_stock_endpoint(self):
-        '''Test /stock endpoint throws'''
+        '''Test /stock endpoint functions as expected'''
         response = self.client.get(f'/stock?stock_code={self.code}')
         self.assertEqual(200, response.status_code)
         self.assertEqual(True, self.code in response.content.decode().lower())
