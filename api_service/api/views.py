@@ -11,6 +11,8 @@ from rest_framework.response import Response
 from api.models import UserRequestHistory
 from api.serializers import UserRequestHistorySerializer
 
+STOCK_SERVICE_URL = 'http://localhost:9000'
+
 def save_stock_data(stock_data):
     '''save stock data fetched from stock_service to DB'''
     print(stock_data)
@@ -25,9 +27,9 @@ class StockView(APIView):
     def get(self, request):
         '''Call the stock service, save the response, parse it and return it to the user'''
         stock_code = request.query_params.get('stock_code')
-        query = f'http://localhost:8000/stock?stock_code={stock_code}'
-        response = requests.request("GET", query)
-        return Response('response.text')
+        query = f'{STOCK_SERVICE_URL}/stock?stock_code={stock_code}'
+        stock_data = requests.request('GET', query)
+        return Response(stock_data.text)
 
 
 class HistoryView(generics.ListAPIView):

@@ -5,7 +5,7 @@ run_api:
 	$(API_ROOT) runserver;
 
 run_stock:
-	$(STOCK_ROOT) runserver;
+	$(STOCK_ROOT) runserver 0.0.0.0:9000;
 
 activate:
 	. virtualenv/bin/activate;
