@@ -13,8 +13,8 @@ class StockView(APIView):
     Endpoint to allow users to query stocks
     """
     def get(self, request, *args, **kwargs):
+        '''Call the stock service, save the response, and return the response to the user'''
         stock_code = request.query_params.get('q')
-        # TODO: Call the stock service, save the response, and return the response to the user
         return Response()
 
 
@@ -25,7 +25,8 @@ class HistoryView(generics.ListAPIView):
     queryset = UserRequestHistory.objects.all()
     serializer_class = UserRequestHistorySerializer
     # TODO: Filter the queryset so that we get the records for the user making the request.
-
+    def get(self, request, *args, **kwargs):
+        return Response()
 
 class StatsView(APIView):
     """
