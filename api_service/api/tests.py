@@ -1,7 +1,7 @@
 '''
 Test for api_service
 '''
-from unittest import mock
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -9,6 +9,8 @@ from rest_framework.test import APIClient, APITestCase
 
 INVALID_TOKEN_CODE = 401
 OK_CODE = 200
+MOCKED_CONTENT = 'AAPL.US'
+
 
 def get_tokens_for_user(user):
     '''create jwt tokens for user'''
@@ -34,8 +36,16 @@ def setup_superuser_for_tests():
     access_token = get_tokens_for_user(superuser).access_token
     return superuser, access_token
 
+def _mocked_requests_get(*_, **__):
+    class _MockResponse:
+        def __init__(self, text, status_code):
+            self.text = text
+            self.status_code = status_code
+
+    return _MockResponse(MOCKED_CONTENT, OK_CODE)
+
 class TestStockView(APITestCase):
-    '''Tests for StockView'''
+    '''Tests for StockView (which make a mocked request to stock_service)'''
     def setUp(self):
         self.user, self.user_access_token = setup_user_for_tests()
         self.superuser, self.superuser_access_token = setup_superuser_for_tests()
@@ -50,9 +60,10 @@ class TestStockView(APITestCase):
     def _request_stats(self):
         return self.client.get('/stats')
 
-    @mock.patch('api.views.requests')
+    @patch('api.views.requests.get', side_effect=_mocked_requests_get)
     def test_view_invalid_token(self, _):
         '''Ensure request is blocked if token is invalid or missing across all endpoints'''
+
         self.assertEqual(INVALID_TOKEN_CODE, self._request_stock().status_code)
         self.assertEqual(INVALID_TOKEN_CODE, self._request_history().status_code)
         self.assertEqual(INVALID_TOKEN_CODE, self._request_stats().status_code)
@@ -65,10 +76,10 @@ class TestStockView(APITestCase):
         self.assertEqual(INVALID_TOKEN_CODE, self._request_history().status_code)
         self.assertEqual(INVALID_TOKEN_CODE, self._request_stats().status_code)
 
-
-    @mock.patch('api.views.requests')
+    @patch('api.views.requests.get', side_effect=_mocked_requests_get)
     def test_view_valid_token(self, _):
         '''Ensure request is accepted if token is valid across all endpoints'''
+
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_access_token}')
         self.assertEqual(OK_CODE, self._request_stock().status_code)
         self.assertEqual(OK_CODE, self._request_history().status_code)

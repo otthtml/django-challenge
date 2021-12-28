@@ -28,7 +28,7 @@ class StockView(APIView):
         '''Call the stock service, save the response, parse it and return it to the user'''
         stock_code = request.query_params.get('stock_code')
         query = f'{STOCK_SERVICE_URL}/stock?stock_code={stock_code}'
-        stock_data = requests.request('GET', query)
+        stock_data = requests.get(query)
         return Response(stock_data.text)
 
 
