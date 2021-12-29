@@ -84,3 +84,7 @@ The following features are optional to implement, but if you do, you'll be ranke
 
 __Important:__ If your implementation requires different steps to start the services
 (like starting a rabbitMQ consumer), document them here!
+
+## Modifications
+Dev environment improvements.
+- Made a devcontainer using docker. This means you can enter the devcontainer using the "Remote Containers" VSCode extension and run the services manually using `make api` and `make stock`. To run all tests, you can use `make test`. If anything breaks while making changes to requirements, try cleaning the environment up with `make clean`.

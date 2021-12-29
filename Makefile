@@ -1,24 +1,47 @@
-API_ROOT = ./api_service/manage.py
-STOCK_ROOT = ./stock_service/manage.py
+API_ROOT := ./api_service/manage.py
+STOCK_ROOT := ./stock_service/manage.py
+VENV_ROOT := virtualenv
+VENV_ACTIVATE := . $(VENV_ROOT)/bin/activate
 
-run_api:
-	$(API_ROOT) runserver;
+install_venv:
+	(\
+		python -m venv virtualenv && \
+		$(VENV_ACTIVATE) && \
+		pip install -r requirements.txt; \
+	)
 
-run_stock:
-	$(STOCK_ROOT) runserver 127.0.0.1:9000;
+run_api: 
+	(\
+		$(VENV_ACTIVATE) && \
+		$(API_ROOT) runserver; \
+	)
 
-activate:
-	. virtualenv/bin/activate;
+api: install_venv run_api
+
+
+run_stock: 
+	(\
+		$(VENV_ACTIVATE) && \
+		$(STOCK_ROOT) runserver 127.0.0.1:9000; \
+	)
+
+stock: install_venv run_stock
 
 clean:
-	rm -rf __pycache__; \
+	rm -rf __pycache__ && \
 	rm -rf virtualenv;
 
 test_api:
-	$(API_ROOT) test api
+	(\
+		$(VENV_ACTIVATE) && \
+		$(API_ROOT) test api; \
+	)
 
 test_stock:
-	$(STOCK_ROOT) test stocks
+	(\
+		$(VENV_ACTIVATE) && \
+		$(STOCK_ROOT) test stocks; \
+	)
 
 test: test_api test_stock
 
