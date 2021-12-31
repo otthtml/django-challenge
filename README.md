@@ -87,4 +87,4 @@ __Important:__ If your implementation requires different steps to start the serv
 
 ## Modifications
 Dev environment improvements.
-- Made a devcontainer using docker. This means you can enter the devcontainer using the "Remote Containers" VSCode extension and run the services manually using `make api` and `make stock`. To run all tests, you can use `make test`. If anything breaks while making changes to requirements, try cleaning the environment up with `make clean`.
+- Made a devcontainer using docker. This means you can enter the devcontainer using the "Remote Containers" VSCode extension and run the services manually using `make install` to get all dependencies and then `make api` and `make stock`. To run all tests, you can use `make test`. If anything breaks while making changes to requirements, try cleaning the environment up with `make clean`.
