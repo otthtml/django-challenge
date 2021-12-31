@@ -42,19 +42,12 @@ class StockView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        '''Call the stock service, save the response, parse it and return it to the user'''
+        '''Call the stock service, clean the response, save it and return it to the user'''
         stock_code = request.query_params.get('stock_code')
         query = f'{constants.STOCK_SERVICE_URL}/stock?stock_code={stock_code}'
         stock_data = requests.get(query).text
         stock_data = _clean_stock_data(stock_data)
-        for i in UserRequestHistory.objects.all():
-            print(i.date)
-            print(i.name)
-        UserRequestHistory.insert_stock_data(request.user, *stock_data)
-        for i in UserRequestHistory.objects.all():
-            print(i.date)
-            print(i.name)
-
+        UserRequestHistory.insert_stock_data(request.user, *stock_data).save()
         return Response(_format_stock_data(stock_data))
 
 

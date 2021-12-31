@@ -93,7 +93,7 @@ class TestStockView(APITestCase):
         self.assertEqual(OK_CODE, self._request_stats().status_code)
 
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
-    def test_stock_endpoint(self):
+    def test_stock_endpoint(self, _):
         '''ensure /stock endpoint functions as expected (cleaning, formatting and saving)'''
         initial_size = len(UserRequestHistory.objects.all())
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_access_token}')
@@ -104,19 +104,19 @@ class TestStockView(APITestCase):
         self.assertEqual(OK_CODE, response.status_code)
 
         # ensure unwanted characters were properly cleaned
-        # self.assertEqual(-1, response.content.find('\\'))
-        # self.assertEqual(-1, response.content.find('\''))
-        # self.assertEqual(-1, response.content.find('\"'))
+        content = response.content.decode()
+        self.assertEqual(-1, content.find('\\'))
+        self.assertEqual(-1, content.find('\''))
 
-        # # ensure a record was inserted in the DB
-        # self.assertEqual(final_size, initial_size + 1)
+        # ensure a record was inserted in the DB
+        self.assertEqual(final_size, initial_size + 1)
 
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
-    def test_history_endpoint(self):
+    def test_history_endpoint(self, _):
         '''ensure /history endpoint functions as expected'''
         self.assertEqual(True, 1==1)
 
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
-    def test_stats_endpoint(self):
+    def test_stats_endpoint(self, _):
         '''ensure /stats endpoint functions as expected'''
         self.assertEqual(True, 1==1)
