@@ -14,5 +14,5 @@ class StockView(APIView):
         and returns result to requester'''
         stock_code = request.query_params.get('stock_code')
         query = f'{STOOQ_URL}?s={stock_code}&f=sd2t2ohlcvn&h&e=csv​'
-        response = requests.request("GET", query)
-        return Response(response.text)
+        response = requests.get(query)
+        return Response(response.content)
