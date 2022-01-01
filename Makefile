@@ -5,10 +5,12 @@ VENV_ACTIVATE := . $(VENV_ROOT)/bin/activate
 
 install:
 	(\
-		python -m venv virtualenv && \
+		python -m venv $(VENV_ROOT) && \
 		$(VENV_ACTIVATE) && \
 		pip install -r requirements.txt; \
 	)
+
+setup: install migrate create_user create_superuser
 
 api: 
 	(\
@@ -24,7 +26,9 @@ stock:
 
 clean:
 	rm -rf __pycache__ && \
-	rm -rf virtualenv;
+	rm stock_service/db.sqlite3 && \
+	rm api_service/db.sqlite3 && \
+	rm -rf virtualenv; \
 
 test_api:
 	(\
@@ -43,11 +47,18 @@ test: test_api test_stock
 migrate:
 	(\
 		$(VENV_ACTIVATE) && \
-		$(API_ROOT) migrate; \
+		python $(API_ROOT) makemigrations && \
+		python $(API_ROOT) migrate; \
 	)
 
 create_user:
-	echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_user('octavio', 'octavio@myproject.com', 'password')" | python $(API_ROOT) shell
+	(\
+		$(VENV_ACTIVATE) && \
+		echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_user('octavio', 'octavio@myproject.com', 'password')" | python $(API_ROOT) shell; \
+	)
 
 create_superuser:
-	echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@myproject.com', 'password')" | python $(API_ROOT) shell
+	(\
+		$(VENV_ACTIVATE) && \
+		echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@myproject.com', 'password')" | python $(API_ROOT) shell; \
+	)
