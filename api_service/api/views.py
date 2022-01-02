@@ -35,6 +35,17 @@ def _to_int_or_float(number):
         number = float(number)
     return number
 
+def _insert_stock_data(user, *stock_data):
+    UserRequestHistory.objects.create(
+        user=user,
+        name=stock_data[constants.NAME],
+        symbol=stock_data[constants.SYMBOL],
+        open=stock_data[constants.OPEN],
+        high=stock_data[constants.HIGH],
+        low=stock_data[constants.LOW],
+        close=stock_data[constants.CLOSE],
+    )  
+
 class StockView(APIView):
     """
     Endpoint to allow users to query stocks
@@ -47,7 +58,7 @@ class StockView(APIView):
         query = f'{constants.STOCK_SERVICE_URL}/stock?stock_code={stock_code}'
         stock_data = requests.get(query).text
         stock_data = _clean_stock_data(stock_data)
-        UserRequestHistory.insert_stock_data(request.user, *stock_data).save()
+        _insert_stock_data(request.user, *stock_data)
         return Response(_format_stock_data(stock_data))
 
 
@@ -56,12 +67,11 @@ class HistoryView(generics.ListAPIView):
     Returns queries made by current user.
     """
     permission_classes = (IsAuthenticated,)
+    
+    serializer_class = UserRequestHistorySerializer
 
-    def get(self, request):
-        '''Filter the queryset so that we get the records for the user making the request.'''
-        # queryset = UserRequestHistory.objects.filter(user=request.user)
-        # serializer_class = UserRequestHistorySerializer
-        return Response()
+    def get_queryset(self):
+        return UserRequestHistory.objects.filter(user=self.request.user)
 
 
 class StatsView(APIView):
