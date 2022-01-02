@@ -98,8 +98,9 @@ class TestStockView(APITestCase):
         response = self._request_stock()
         final_size = len(UserRequestHistory.objects.all())
 
-        # ensure response is 200
+        # ensure response is 200 and it's json
         self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual('application/json', response.__getitem__('content-type'))
 
         # ensure unwanted characters were properly cleaned
         content = response.content.decode()
@@ -112,9 +113,19 @@ class TestStockView(APITestCase):
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
     def test_history_endpoint(self, _):
         '''ensure /history endpoint functions as expected'''
-        self.assertEqual(True, 1==1)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_access_token}')
+        response = self._request_history()
+
+        # ensure response is 200 and it's json
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual('application/json', response.__getitem__('content-type'))
 
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
     def test_stats_endpoint(self, _):
         '''ensure /stats endpoint functions as expected'''
-        self.assertEqual(True, 1==1)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.superuser_access_token}')
+        response = self._request_stats()
+
+        # ensure response is 200 and it's json
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual('application/json', response.__getitem__('content-type'))
