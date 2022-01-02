@@ -64,18 +64,22 @@ class TestStockView(APITestCase):
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
     def test_invalid_token(self, _):
         '''Ensure request is blocked if token is invalid or missing across all endpoints'''
-
+        # ensure missing tokens are blocked
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, self._request_stock().status_code)
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, self._request_history().status_code)
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, self._request_stats().status_code)
 
+        # ensure blacklisted (expired) tokens are blocked
         token, _ = get_tokens_for_user(self.user).blacklist()
-        self.client.credentials(
-            HTTP_AUTHORIZATION=f'Bearer {token.token.token}'
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token.token.token}')
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, self._request_stock().status_code)
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, self._request_history().status_code)
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, self._request_stats().status_code)
+
+        # ensure unauthorized (regular) users are blocked
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_access_token}')
+        self.assertEqual(status.HTTP_403_FORBIDDEN, self._request_stats().status_code)
+
 
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
     def test_valid_token(self, _):
