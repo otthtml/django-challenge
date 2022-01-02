@@ -1,5 +1,6 @@
 # encoding: utf-8
 '''View that contains all of api_service's endpoints'''
+from django.db.models import Count
 import requests
 
 from rest_framework import generics
@@ -83,4 +84,9 @@ class StatsView(APIView):
     def get(self, request):
         '''Implement the query needed to get the top-5 stocks as described in the README, and return
         the results to the user.'''
-        return Response()
+        result = (UserRequestHistory.objects
+            .values('symbol')
+            .annotate(times_requested=Count('symbol'))
+            .order_by()
+        )
+        return Response(result)
