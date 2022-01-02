@@ -77,14 +77,20 @@ The following features are optional to implement, but if you do, you'll be ranke
 * Use JWT instead of basic authentication for endpoints.
 
 ## How to run the project
-* Create a virtualenv: `python -m venv virtualenv` and activate it `. virtualenv/bin/activate`.
-* Install dependencies: `pip install -r requirements.txt`
-* Start the api service: `cd api_service ; ./manage.py runserver`
-* Start the stock service: `cd stock_service ; ./manage.py runserver`
+Try to run this in the devcontainer preferably (using VSCode's "Remote Containers" extension)
+* Create a virtualenv, install dependencies, setup DB and create test users: `make setup`
+* Start the api service: `make api`
+* Start the stock service: `make stock`
+* To run unit tests: `make test`
+* To clean env, DB and cache: `make clean`
 
 __Important:__ If your implementation requires different steps to start the services
 (like starting a rabbitMQ consumer), document them here!
 
 ## Modifications
-Dev environment improvements.
-- Made a devcontainer using docker. This means you can enter the devcontainer using the "Remote Containers" VSCode extension and run the services manually using `make setup` to install dependencies, make migrations and create users. Then run `make api` and `make stock`. To run all tests, you can use `make test`. If anything breaks while making changes to requirements, try cleaning the environment up with `make clean`.
+Dev environment improvements:
+- Made a devcontainer using docker. This means you can enter the devcontainer using the "Remote Containers" VSCode extension and run the exact same configuration everyone's running :)
+
+Made unit tests and integration tests (on Postman):
+- To run the unit tests, simply run `make test` inside the devcontainer.
+- To run integration tests, import the `django challenge.postman_collection.json` file into Postman and run the requests sequentially. Ensure api_service and stock_service are both running and exposed to the host machine.
