@@ -9,8 +9,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.test import APIClient, APITestCase
 
 from api.models import UserRequestHistory
+
+NAME = 'NVR'
+SYMBOL = 'NVR.US'
+OPEN = 5884.1
+HIGH = 5917.7
+LOW = 5850.5
+CLOSE = 5908.87
 MOCKED_CONTENT = 'Symbol,Date,Time,Open,High,Low,Close,Volume,Name\\r\\n' + \
-'NVR.US,2021-12-31,22:00:37,5884.1,5917.7,5850.5,5908.87,6346,NVR\\r\\n'
+f'{SYMBOL},2021-12-31,22:00:37,{OPEN},{HIGH},{LOW},{CLOSE},6346,{NAME}\\r\\n'
 
 
 def _get_tokens_for_user(user):
@@ -60,6 +67,14 @@ class TestStockView(APITestCase):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual('application/json', response.__getitem__('content-type'))
 
+    def _ensure_stock_formatted_properly(self, json_data):
+        self.assertEqual(NAME, json_data['name'])
+        self.assertEqual(SYMBOL, json_data['symbol'])
+        self.assertEqual(OPEN, json_data['open'])
+        self.assertEqual(HIGH, json_data['high'])
+        self.assertEqual(LOW, json_data['low'])
+        self.assertEqual(CLOSE, json_data['close'])
+
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
     def test_invalid_token(self, _):
         '''Ensure request is blocked if token is invalid or missing across all endpoints'''
@@ -101,28 +116,37 @@ class TestStockView(APITestCase):
         stock_data = self._request_stock()
         final_size = len(UserRequestHistory.objects.all())
 
-        self._ensure_valid_response(stock_data)
-
         # ensure unwanted characters were properly cleaned
         content = stock_data.content.decode()
         self.assertEqual(-1, content.find('\\'))
         self.assertEqual(-1, content.find('\''))
 
+        # ensure response contains all expected fields
+        json_data = stock_data.json()
+        self._ensure_stock_formatted_properly(json_data)
+
         # ensure a record was inserted in the DB
         self.assertEqual(final_size, initial_size + 1)
+
+        self._ensure_valid_response(stock_data)
 
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
     def test_history_endpoint(self, _):
         '''ensure /history endpoint functions as expected'''
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_access_token}')
 
+        # ensure history is increasing
         _ = self._request_stock()
         history_data = self._request_history()
         self.assertEqual(1, len(history_data.json()))
-
         _ = self._request_stock()
         history_data = self._request_history()
         self.assertEqual(2, len(history_data.json()))
+
+        # ensure response contains all expected fields
+        json_data = history_data.json()
+        for i in json_data:    
+            self._ensure_stock_formatted_properly(i)
 
         self._ensure_valid_response(history_data)
 
@@ -131,12 +155,17 @@ class TestStockView(APITestCase):
         '''ensure /stats endpoint functions as expected'''
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.superuser_access_token}')
 
+        # ensure times_requested is increasing and response contains all expected fields.
         _ = self._request_stock()
         stats_data = self._request_stats()
-        self.assertEqual(1, stats_data.json()[0]["times_requested"])
+        stats = stats_data.json()[0]
+        self.assertEqual(1, stats["times_requested"])
+        self.assertEqual(SYMBOL, stats['symbol'])
 
         _ = self._request_stock()
         stats_data = self._request_stats()
-        self.assertEqual(2, stats_data.json()[0]["times_requested"])
+        stats = stats_data.json()[0]
+        self.assertEqual(2, stats["times_requested"])
+        self.assertEqual(SYMBOL, stats['symbol'])
 
         self._ensure_valid_response(stats_data)
