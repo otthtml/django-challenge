@@ -94,3 +94,4 @@ Dev environment improvements:
 Made unit tests and integration tests (on Postman):
 - To run the unit tests, simply run `make test` inside the devcontainer.
 - To run integration tests, import the `django challenge.postman_collection.json` file into Postman and run the requests sequentially. Ensure api_service and stock_service are both running and exposed to the host machine.
+The first request (`/token`) creates tokens and sets them as collection variables so that future requests are automatically authorized. 
