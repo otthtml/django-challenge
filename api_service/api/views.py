@@ -16,16 +16,20 @@ def _clean_stock_data(stock_data: str):
     clean_data = stock_data.split(',')
     clean_data[constants.SYMBOL] = clean_data[constants.SYMBOL].split('\\n')[1]
     clean_data[constants.NAME] = clean_data[constants.NAME].split('\\')[0]
+    clean_data[constants.OPEN] = _to_int_or_float(clean_data[constants.OPEN])
+    clean_data[constants.HIGH] = _to_int_or_float(clean_data[constants.HIGH])
+    clean_data[constants.LOW] = _to_int_or_float(clean_data[constants.LOW])
+    clean_data[constants.CLOSE] = _to_int_or_float(clean_data[constants.CLOSE])
     return clean_data
 
 def _format_stock_data(stock_data):
     formated = {
         'name': stock_data[constants.NAME],
         'symbol': stock_data[constants.SYMBOL],
-        'open': _to_int_or_float(stock_data[constants.OPEN]),
-        'high': _to_int_or_float(stock_data[constants.HIGH]),
-        'low': _to_int_or_float(stock_data[constants.LOW]),
-        'close': _to_int_or_float(stock_data[constants.CLOSE])
+        'open': stock_data[constants.OPEN],
+        'high': stock_data[constants.HIGH],
+        'low': stock_data[constants.LOW],
+        'close': stock_data[constants.CLOSE]
     }
     return formated
 
@@ -34,7 +38,7 @@ def _to_int_or_float(number):
         number = int(number)
     except ValueError:
         number = float(number)
-    return number
+    return round(number, 2)
 
 def _insert_stock_data(user, *stock_data):
     UserRequestHistory.objects.create(
@@ -81,7 +85,7 @@ class StatsView(APIView):
     """
     permission_classes = (IsAdminUser,)
 
-    def get(self, request):
+    def get(self, _):
         '''Implement the query needed to get the top-5 stocks as described in the README, and return
         the results to the user.'''
         result = (UserRequestHistory.objects
