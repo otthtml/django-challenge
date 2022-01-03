@@ -13,28 +13,23 @@ MOCKED_CONTENT = 'Symbol,Date,Time,Open,High,Low,Close,Volume,Name\\r\\n' + \
 'NVR.US,2021-12-31,22:00:37,5884.1,5917.7,5850.5,5908.87,6346,NVR\\r\\n'
 
 
-def get_tokens_for_user(user):
-    '''create jwt tokens for user'''
+def _get_tokens_for_user(user):
     return RefreshToken.for_user(user)
 
-def create_user(name='octavio', email='octavio@myproject.com', password='password'):
-    '''create and return an user'''
+def _create_user(name='octavio', email='octavio@myproject.com', password='password'):
     return User.objects.create_user(name, email, password)
 
-def create_superuser(name='admin', email='admin@myproject.com', password='password'):
-    '''create and return a super user'''
+def _create_superuser(name='admin', email='admin@myproject.com', password='password'):
     return User.objects.create_superuser(name, email, password)
 
-def setup_user_for_tests():
-    '''simple user setup for tests in all services'''
-    user = create_user()
-    access_token = get_tokens_for_user(user).access_token
+def _setup_user_for_tests():
+    user = _create_user()
+    access_token = _get_tokens_for_user(user).access_token
     return user, access_token
 
-def setup_superuser_for_tests():
-    '''simple superuser setup for tests in all services'''
-    superuser = create_superuser()
-    access_token = get_tokens_for_user(superuser).access_token
+def _setup_superuser_for_tests():
+    superuser = _create_superuser()
+    access_token = _get_tokens_for_user(superuser).access_token
     return superuser, access_token
 
 def _mocked_requests_get(*_, **__):
@@ -48,8 +43,8 @@ def _mocked_requests_get(*_, **__):
 class TestStockView(APITestCase):
     '''Tests for StockView (which make a mocked request to stock_service)'''
     def setUp(self):
-        self.user, self.user_access_token = setup_user_for_tests()
-        self.superuser, self.superuser_access_token = setup_superuser_for_tests()
+        self.user, self.user_access_token = _setup_user_for_tests()
+        self.superuser, self.superuser_access_token = _setup_superuser_for_tests()
         self.client = APIClient()
 
     def _request_stock(self):
@@ -61,6 +56,10 @@ class TestStockView(APITestCase):
     def _request_stats(self):
         return self.client.get('/stats')
 
+    def _ensure_valid_response(self, response):
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual('application/json', response.__getitem__('content-type'))
+
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
     def test_invalid_token(self, _):
         '''Ensure request is blocked if token is invalid or missing across all endpoints'''
@@ -70,7 +69,7 @@ class TestStockView(APITestCase):
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, self._request_stats().status_code)
 
         # ensure blacklisted (expired) tokens are blocked
-        token, _ = get_tokens_for_user(self.user).blacklist()
+        token, _ = _get_tokens_for_user(self.user).blacklist()
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token.token.token}')
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, self._request_stock().status_code)
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, self._request_history().status_code)
@@ -99,15 +98,13 @@ class TestStockView(APITestCase):
         '''ensure /stock endpoint functions as expected (cleaning, formatting and saving)'''
         initial_size = len(UserRequestHistory.objects.all())
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_access_token}')
-        response = self._request_stock()
+        stock_data = self._request_stock()
         final_size = len(UserRequestHistory.objects.all())
 
-        # ensure response is 200 and it's json
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual('application/json', response.__getitem__('content-type'))
+        self._ensure_valid_response(stock_data)
 
         # ensure unwanted characters were properly cleaned
-        content = response.content.decode()
+        content = stock_data.content.decode()
         self.assertEqual(-1, content.find('\\'))
         self.assertEqual(-1, content.find('\''))
 
@@ -118,18 +115,28 @@ class TestStockView(APITestCase):
     def test_history_endpoint(self, _):
         '''ensure /history endpoint functions as expected'''
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.user_access_token}')
-        response = self._request_history()
 
-        # ensure response is 200 and it's json
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual('application/json', response.__getitem__('content-type'))
+        _ = self._request_stock()
+        history_data = self._request_history()
+        self.assertEqual(1, len(history_data.json()))
+
+        _ = self._request_stock()
+        history_data = self._request_history()
+        self.assertEqual(2, len(history_data.json()))
+
+        self._ensure_valid_response(history_data)
 
     @patch('api.views.requests.get', side_effect=_mocked_requests_get)
     def test_stats_endpoint(self, _):
         '''ensure /stats endpoint functions as expected'''
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.superuser_access_token}')
-        response = self._request_stats()
 
-        # ensure response is 200 and it's json
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual('application/json', response.__getitem__('content-type'))
+        _ = self._request_stock()
+        stats_data = self._request_stats()
+        self.assertEqual(1, stats_data.json()[0]["times_requested"])
+
+        _ = self._request_stock()
+        stats_data = self._request_stats()
+        self.assertEqual(2, stats_data.json()[0]["times_requested"])
+
+        self._ensure_valid_response(stats_data)
