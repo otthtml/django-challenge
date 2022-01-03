@@ -82,7 +82,7 @@ Try to run this in the devcontainer preferably (using VSCode's "Remote Container
 * Start the api service: `make api`
 * Start the stock service: `make stock`
 * To run unit tests: `make test`
-* To clean env, DB and cache: `make clean`
+* To clean env, DB and cache (in case things stop working): `make clean`
 
 __Important:__ If your implementation requires different steps to start the services
 (like starting a rabbitMQ consumer), document them here!
